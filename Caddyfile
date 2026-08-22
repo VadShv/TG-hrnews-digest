@@ -1,0 +1,14 @@
+# HR Pulse — Caddy reverse proxy
+# {$DOMAIN} is set from CADDY_DOMAIN env:
+#   - a domain (e.g. hr.example.com) → auto HTTPS
+#   - ":80" → HTTP only (IP access, no TLS)
+
+{$DOMAIN} {
+	encode gzip zstd
+
+	reverse_proxy app:3000 {
+		header_up X-Forwarded-For {remote_host}
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Real-IP {remote_host}
+	}
+}

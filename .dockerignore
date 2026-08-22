@@ -1,0 +1,10 @@
+node_modules
+.next
+.git
+.env
+.env.*
+*.log
+db/
+tg-worker/__pycache__
+tg-worker/.venv
+tg-worker/*.session

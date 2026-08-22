@@ -1,0 +1,84 @@
+# HR Pulse — production stack (Next.js + Postgres/pgvector + RSSHub + TG worker + Caddy)
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-hrpulse}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hrpulse}
+      POSTGRES_DB: ${POSTGRES_DB:-hrpulse}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/10-extensions.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-hrpulse}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rsshub:
+    image: diygod/rsshub:latest
+    restart: unless-stopped
+    environment:
+      CACHE_TYPE: memory
+      CACHE_EXPIRE: 600
+    # Internal only — the app fetches http://rsshub:1200/<route>
+
+  tg-worker:
+    build: ./tg-worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-hrpulse}:${POSTGRES_PASSWORD:-hrpulse}@db:5432/${POSTGRES_DB:-hrpulse}
+      TG_API_ID: ${TG_API_ID}
+      TG_API_HASH: ${TG_API_HASH}
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  app:
+    build: .
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-hrpulse}:${POSTGRES_PASSWORD:-hrpulse}@db:5432/${POSTGRES_DB:-hrpulse}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
+      LLM_EMBED_MODEL: ${LLM_EMBED_MODEL:-text-embedding-3-small}
+      EMBED_DIM: ${EMBED_DIM:-1536}
+      RSSHUB_BASE_URL: http://rsshub:1200
+      TG_WORKER_URL: http://tg-worker:8001
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY}
+      NODE_ENV: production
+      ENABLE_SCHEDULER: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+      rsshub:
+        condition: service_started
+      tg-worker:
+        condition: service_started
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${CADDY_DOMAIN:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

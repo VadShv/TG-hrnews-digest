@@ -1,0 +1,206 @@
+// HR Pulse — SaaS for managing an HR news digest bot
+// Postgres + pgvector. Vector/FTS/trigram columns managed via raw migrations.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Admin operator (single-tenant v1).
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+/// A news article from RSS, Telegram scan, or manual save.
+model NewsArticle {
+  id          String       @id @default(cuid())
+  title       String
+  url         String       @unique
+  snippet     String
+  source      String
+  author      String?
+  publishedAt DateTime?
+  category    String?
+  tags        String?
+  imageUrl    String?
+  summary     String?
+  readingTime Int?
+  language    String? @default("ru")
+  starred     Boolean @default(false)
+  archived    Boolean @default(false)
+  editorNote  String?
+  contentHash String?
+  sourceType  String   @default("rss") // rss | tg | manual
+  embedded    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  digestItems DigestItem[]
+
+  // pgvector column — managed via raw SQL (hnsw index, cosine).
+  embedding Unsupported("vector")?
+
+  @@index([category])
+  @@index([starred])
+  @@index([createdAt])
+  @@index([sourceType])
+  @@index([contentHash])
+}
+
+/// RSS feed source (RSSHub route).
+model Feed {
+  id            String    @id @default(cuid())
+  name          String
+  rsshubRoute   String
+  category      String?
+  active        Boolean   @default(true)
+  intervalMin   Int       @default(60)
+  lastFetchedAt DateTime?
+  lastError     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([active])
+}
+
+/// Telegram channel monitored as a news source.
+model TgChannel {
+  id            String    @id @default(cuid())
+  chatId        String
+  title         String?
+  category      String?
+  active        Boolean   @default(true)
+  lastScannedAt DateTime?
+  lastMessageId Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([active])
+}
+
+/// kurigram session (single row).
+model TgSession {
+  id              String   @id @default(cuid())
+  phone           String?
+  sessionEncrypted String?
+  status          String   @default("off") // off | pending | active
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+/// Job queue consumed by the Python TG worker.
+model TgJob {
+  id        String   @id @default(cuid())
+  type      String // post_digest | scan_channel | send_test
+  payload   Json
+  status    String   @default("pending") // pending | running | done | failed
+  result    Json?
+  error     String?
+  createdAt DateTime @default(now())
+  startedAt DateTime?
+  finishedAt DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// A digest = curated collection of articles with intro/outro and schedule.
+model Digest {
+  id            String      @id @default(cuid())
+  title         String
+  subtitle      String?
+  intro         String?
+  outro         String?
+  status        String      @default("draft") // draft | ready | scheduled | sent
+  coverStyle    String?     @default("emerald")
+  tone          String?     @default("professional")
+  scheduledAt   DateTime?
+  sentCount     Int         @default(0)
+  viewCount     Int         @default(0)
+  scheduleCron  String?
+  scheduleEnabled Boolean   @default(false)
+  autoChannelIds Json?
+  lastRunAt     DateTime?
+  nextRunAt     DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  items         DigestItem[]
+  broadcasts    Broadcast[]
+}
+
+/// Many-to-many link between a digest and the articles it contains.
+model DigestItem {
+  id        String       @id @default(cuid())
+  digestId  String
+  articleId String
+  position  Int          @default(0)
+  note      String?
+  digest    Digest       @relation(fields: [digestId], references: [id], onDelete: Cascade)
+  article   NewsArticle  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+
+  @@unique([digestId, articleId])
+  @@index([digestId])
+}
+
+/// A destination channel / group where digests are broadcast.
+model Channel {
+  id              String      @id @default(cuid())
+  name            String
+  type            String // telegram | slack | email | webhook | discord
+  target          String // chat id / channel / email / url
+  config          String?
+  description     String?
+  active          Boolean     @default(true)
+  subscriberCount Int         @default(0)
+  avatarColor     String?     @default("emerald")
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  broadcasts      Broadcast[]
+}
+
+/// A single broadcast attempt of a digest to a channel.
+model Broadcast {
+  id          String    @id @default(cuid())
+  digestId    String
+  channelId   String
+  status      String    @default("pending") // pending | sent | delivered | failed
+  message     String?
+  errorMessage String?
+  tgJobId     String?
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime  @default(now())
+  digest      Digest    @relation(fields: [digestId], references: [id], onDelete: Cascade)
+  channel     Channel   @relation(fields: [channelId], references: [id], onDelete: Cascade)
+
+  @@index([digestId])
+  @@index([channelId])
+  @@index([status])
+}
+
+/// Key/value store for bot configuration.
+model BotSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+/// Audit log of search queries.
+model SearchQuery {
+  id          String   @id @default(cuid())
+  query       String
+  category    String?
+  resultCount Int?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
