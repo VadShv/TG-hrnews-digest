@@ -5,5 +5,6 @@ export default withAuth({
 })
 
 export const config = {
-  matcher: ['/((?!login|api/auth|api/health|_next/static|_next/image|favicon.ico|logo.svg|robots.txt).*)'],
+  // Protect pages only. API routes self-protect via getSessionOr401 (return 401 JSON).
+  matcher: ['/((?!login|api|_next/static|_next/image|favicon.ico|logo.svg|robots.txt).*)'],
 }
