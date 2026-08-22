@@ -21,7 +21,7 @@ _job_task: asyncio.Task | None = None
 async def lifespan(app: FastAPI):
     global _job_task
     await db.init()
-    await manager.load_from_db()
+    await manager.load_from_file()
     _job_task = asyncio.create_task(start_job_loop(manager))
     log.info("TG worker started")
     yield
