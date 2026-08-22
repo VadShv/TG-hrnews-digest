@@ -39,7 +39,7 @@ CREATE TABLE "NewsArticle" (
     "embedded" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "embedding" vector,
+    "embedding" vector(1536),
     CONSTRAINT "NewsArticle_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX "NewsArticle_url_key" ON "NewsArticle"("url");
