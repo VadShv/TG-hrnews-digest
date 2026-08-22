@@ -9,7 +9,10 @@ from db import db
 
 log = logging.getLogger("tg")
 
-API_ID = int(os.environ.get("TG_API_ID", "0") or "0")
+try:
+    API_ID = int(os.environ.get("TG_API_ID", "0") or "0")
+except (ValueError, TypeError):
+    API_ID = 0
 API_HASH = os.environ.get("TG_API_HASH", "")
 WORK_DIR = os.environ.get("TG_WORK_DIR", os.path.dirname(os.path.abspath(__file__)))
 SESSION_NAME = "hrpulse"
