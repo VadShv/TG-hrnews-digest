@@ -24,7 +24,7 @@ import {
 
 interface Article {
   id: string; title: string; url: string; snippet: string; source: string; category: string | null;
-  publishedAt: string | null; starred: boolean; tags: string | null; summary: string | null;
+  publishedAt: string | null; starred: boolean; tags: string | null; summary: string | null; createdAt: string;
 }
 interface DigestItem { id: string; digestId: string; articleId: string; position: number; note: string | null; article: Article }
 interface Digest {

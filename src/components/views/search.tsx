@@ -55,7 +55,7 @@ export function SearchView() {
   async function addToDigest(r: SearchResult) {
     if (digests.length === 0) {
       try {
-        const res = await apiCall<{ items: { id: string; title: string }[] }>('/api/digests')
+        const res = await apiCall<{ items: { id: string; title: string }[] }>('/api/digests', 'GET')
         setDigests(res.items.map((d) => ({ id: d.id, title: d.title })))
       } catch { /* ignore */ }
     }

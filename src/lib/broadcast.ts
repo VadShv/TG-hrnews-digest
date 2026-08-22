@@ -47,7 +47,7 @@ export async function broadcastDigest(digestId: string, channelIds: string[], pr
       const job = await db.tgJob.create({
         data: {
           type: 'post_digest',
-          payload: { chatId: ch.target, message, channelName: ch.name } as Record<string, unknown>,
+          payload: { chatId: ch.target, message, channelName: ch.name } as any,
         },
       })
       const broadcast = await db.broadcast.create({
@@ -108,7 +108,7 @@ export async function enqueueChannelScan(tgChannelId: string, chatId: string, la
   return db.tgJob.create({
     data: {
       type: 'scan_channel',
-      payload: { tgChannelId, chatId, lastMessageId: lastMessageId ?? null } as Record<string, unknown>,
+      payload: { tgChannelId, chatId, lastMessageId: lastMessageId ?? null } as any,
     },
   })
 }
@@ -118,7 +118,7 @@ export async function enqueueTestMessage(chatId: string, message: string) {
   return db.tgJob.create({
     data: {
       type: 'send_test',
-      payload: { chatId, message } as Record<string, unknown>,
+      payload: { chatId, message } as any,
     },
   })
 }
