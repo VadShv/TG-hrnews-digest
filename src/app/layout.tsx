@@ -15,11 +15,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HR Pulse — SaaS для управления HR-дайджест ботом",
+  title: "HR News Digest — SaaS для управления HR-дайджест ботом",
   description:
     "Платформа для поиска, хранения и рассылки HR-новостей: управление ботом, конструктор дайджестов, каналы и аналитика.",
   keywords: ["HR", "дайджест", "бот", "рассылка", "HR-новости", "SaaS"],
-  authors: [{ name: "HR Pulse" }],
+  authors: [{ name: "HR News Digest" }],
 };
 
 export default function RootLayout({

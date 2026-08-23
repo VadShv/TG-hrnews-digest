@@ -4,7 +4,7 @@ import { db } from './db'
 import { guessCategory, estimateReadingTime } from './hr'
 import { embedArticle } from './llm'
 
-const parser = new Parser({ timeout: 15000, headers: { 'User-Agent': 'HR-Pulse/1.0' } })
+const parser = new Parser({ timeout: 15000, headers: { 'User-Agent': 'HR-News-Digest/1.0' } })
 
 function stripHtml(s: string): string {
   return s

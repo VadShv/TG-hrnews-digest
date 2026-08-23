@@ -1,4 +1,4 @@
-# HR Pulse — Caddy reverse proxy
+# HR News Digest — Caddy reverse proxy
 # {$DOMAIN} is set from CADDY_DOMAIN env:
 #   - a domain (e.g. hr.example.com) → auto HTTPS
 #   - ":80" → HTTP only (IP access, no TLS)

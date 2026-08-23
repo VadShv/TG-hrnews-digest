@@ -83,7 +83,7 @@ function BrandHeader() {
       </div>
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="text-base font-bold tracking-tight brand-gradient">HR Pulse</span>
+          <span className="text-base font-bold tracking-tight brand-gradient">HR News Digest</span>
           <Sparkles className="size-3.5 text-amber-500" />
         </div>
         <p className="text-[11px] text-muted-foreground truncate">SaaS для HR-дайджест бота</p>

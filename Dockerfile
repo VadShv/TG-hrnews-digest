@@ -1,4 +1,4 @@
-# HR Pulse — Next.js app (standalone build)
+# HR News Digest — Next.js app (standalone build)
 FROM oven/bun:1 AS builder
 WORKDIR /app
 COPY package.json ./

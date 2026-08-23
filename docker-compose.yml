@@ -1,4 +1,4 @@
-# HR Pulse — production stack (Next.js + Postgres/pgvector + RSSHub + TG worker + Caddy)
+# HR News Digest — production stack (Next.js + Postgres/pgvector + RSSHub + TG worker + Caddy)
 services:
   db:
     image: pgvector/pgvector:pg16

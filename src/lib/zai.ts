@@ -38,6 +38,6 @@ export function renderDigestMessage(opts: {
     lines.push(outro)
     lines.push('')
   }
-  lines.push('— HR Pulse Bot')
+  lines.push('— HR News Digest Bot')
   return lines.join('\n')
 }

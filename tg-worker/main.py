@@ -1,4 +1,4 @@
-"""HR Pulse — Telegram worker (kurigram MTProto + FastAPI + job queue)."""
+"""HR News Digest — Telegram worker (kurigram MTProto + FastAPI + job queue)."""
 
 import asyncio
 import logging
@@ -31,7 +31,7 @@ async def lifespan(app: FastAPI):
     await db.close()
 
 
-app = FastAPI(title="HR Pulse TG Worker", lifespan=lifespan)
+app = FastAPI(title="HR News Digest TG Worker", lifespan=lifespan)
 
 
 class LoginStart(BaseModel):

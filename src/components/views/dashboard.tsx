@@ -90,7 +90,7 @@ export function DashboardView() {
         <CardContent className="relative flex flex-col gap-4 py-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="max-w-xl">
             <div className="mb-2 inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-              <Sparkles className="size-3.5" /> Добро пожаловать в HR Pulse
+              <Sparkles className="size-3.5" /> Добро пожаловать в HR News Digest
             </div>
             <h2 className="text-xl font-bold tracking-tight sm:text-2xl">
               Управляйте HR-дайджестом от поиска до рассылки

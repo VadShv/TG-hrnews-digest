@@ -302,7 +302,7 @@ function targetPlaceholder(type: string): string {
   switch (type) {
     case 'telegram': return '@hr_team_main'
     case 'slack': return '#hr-news'
-    case 'email': return 'subscribers@hrpulse.io'
+    case 'email': return 'subscribers@hrnewsdigest.io'
     case 'webhook': return 'https://example.com/webhook'
     case 'discord': return '1234567890'
     default: return '…'

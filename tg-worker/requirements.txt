@@ -1,4 +1,4 @@
-# HR Pulse — Telegram worker dependencies
+# HR News Digest — Telegram worker dependencies
 # kurigram (Pyrogram fork with MTProto user-account support)
 kurigram @ https://github.com/VadShv/kurigram-astra/archive/dev.zip
 fastapi>=0.115.0

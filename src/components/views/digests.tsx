@@ -271,7 +271,7 @@ function DigestEditor({
             </CardHeader>
             <CardContent className="space-y-3">
               <Field label="Заголовок">
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="HR Pulse · Дайджест недели" />
+                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="HR News Digest · Дайджест недели" />
               </Field>
               <Field label="Подзаголовок">
                 <Input value={subtitle} onChange={(e) => setSubtitle(e.target.value)} placeholder="Подбор · Культура · Технологии" />
@@ -379,7 +379,7 @@ function DigestEditor({
                       className="relative p-4 text-white"
                       style={{ background: `linear-gradient(135deg, ${cs.from}, ${cs.to})` }}
                     >
-                      <p className="text-xs font-medium uppercase tracking-wider opacity-80">HR Pulse Digest</p>
+                      <p className="text-xs font-medium uppercase tracking-wider opacity-80">HR News Digest</p>
                       <p className="mt-1 text-base font-bold leading-tight">{title || 'Без названия'}</p>
                       {subtitle && <p className="mt-0.5 text-xs opacity-90">{subtitle}</p>}
                       <div className="mt-3 flex items-center gap-2 text-[10px] opacity-80">
@@ -406,7 +406,7 @@ function DigestEditor({
                     ))}
                   </ol>
                   {outro && <p className="mt-3 border-t pt-2 text-xs text-muted-foreground">{outro}</p>}
-                  <p className="mt-2 text-[10px] text-muted-foreground">— HR Pulse Bot</p>
+                  <p className="mt-2 text-[10px] text-muted-foreground">— HR News Digest Bot</p>
                 </div>
               </div>
               {/* Raw message */}

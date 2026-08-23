@@ -11,15 +11,26 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import {
   Bot, Save, Loader2, Clock, Globe, Languages, Signature, Sparkles,
-  Calendar, Bell, ShieldCheck, Webhook,
+  Calendar, Bell, ShieldCheck, KeyRound, Cpu, CheckCircle2, XCircle, AlertCircle, Zap,
 } from 'lucide-react'
 
 interface Settings { [key: string]: string }
+
+interface TestResult {
+  chatOk: boolean
+  embedOk: boolean
+  embedDim: number
+  expectedDim: number
+  dimMatch: boolean
+  errors: string[]
+}
 
 export function SettingsView() {
   const { data, loading, refresh } = useFetch<{ settings: Settings }>('/api/settings')
   const [form, setForm] = useState<Settings>({})
   const [saving, setSaving] = useState(false)
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<TestResult | null>(null)
 
   useEffect(() => {
     if (data?.settings) setForm(data.settings)
@@ -34,6 +45,7 @@ export function SettingsView() {
     try {
       await apiCall('/api/settings', 'PUT', form)
       toast.success('Настройки сохранены')
+      setForm((s) => ({ ...s, ['llm.apiKey' as string]: '' }))
       void refresh()
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Ошибка')
@@ -42,9 +54,32 @@ export function SettingsView() {
     }
   }
 
+  async function testConnection() {
+    setTesting(true)
+    setTestResult(null)
+    try {
+      const res = await apiCall<TestResult>('/api/settings/llm/test', 'POST', {
+        baseUrl: form['llm.baseUrl'] || '',
+        apiKey: form['llm.apiKey'] || '',
+        model: form['llm.model'] || '',
+        embedModel: form['llm.embedModel'] || '',
+      })
+      setTestResult(res)
+      if (res.chatOk && res.embedOk && res.dimMatch) toast.success('Подключение успешно')
+      else if (res.chatOk && res.embedOk) toast.warning('Подключение есть, но размерность не совпадает')
+      else toast.error('Подключение не удалось')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Ошибка теста')
+    } finally {
+      setTesting(false)
+    }
+  }
+
   if (loading || !data) {
     return <Skeleton className="h-96 rounded-xl" />
   }
+
+  const llmConfigured = form['llm.apiKeySet'] === 'true'
 
   return (
     <div className="space-y-6">
@@ -56,13 +91,13 @@ export function SettingsView() {
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <Field icon={Bot} label="Имя бота" hint="Отображается в подписи">
-            <Input value={form['bot.name'] || ''} onChange={(e) => set('bot.name', e.target.value)} placeholder="HR Pulse Bot" />
+            <Input value={form['bot.name'] || ''} onChange={(e) => set('bot.name', e.target.value)} placeholder="HR News Digest Bot" />
           </Field>
           <Field icon={Bot} label="Username" hint="Telegram-username">
-            <Input value={form['bot.username'] || ''} onChange={(e) => set('bot.username', e.target.value)} placeholder="@hr_pulse_bot" />
+            <Input value={form['bot.username'] || ''} onChange={(e) => set('bot.username', e.target.value)} placeholder="@hr_news_digest_bot" />
           </Field>
           <Field icon={Signature} label="Подпись" hint="В конце каждого дайджеста">
-            <Input value={form['bot.signature'] || ''} onChange={(e) => set('bot.signature', e.target.value)} placeholder="— HR Pulse Bot · новости из мира HR" />
+            <Input value={form['bot.signature'] || ''} onChange={(e) => set('bot.signature', e.target.value)} placeholder="— HR News Digest Bot · новости из мира HR" />
           </Field>
           <Field icon={Sparkles} label="Тон по умолчанию" hint="Стиль сообщений">
             <Select value={form['bot.defaultTone']} onValueChange={(v) => set('bot.defaultTone', v)}>
@@ -122,70 +157,125 @@ export function SettingsView() {
         </CardContent>
       </Card>
 
-      {/* Workspace + features */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Languages className="size-4 text-violet-500" /> Рабочее пространство</CardTitle>
-            <CardDescription>Язык интерфейса и название</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Field icon={Languages} label="Название workspace">
-              <Input value={form['workspace.name'] || ''} onChange={(e) => set('workspace.name', e.target.value)} />
-            </Field>
-            <Field icon={Globe} label="Язык">
-              <Select value={form['workspace.language']} onValueChange={(v) => set('workspace.language', v)}>
-                <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ru">Русский</SelectItem>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="kk">Қазақша</SelectItem>
-                </SelectContent>
-              </Select>
-            </Field>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Bell className="size-4 text-rose-500" /> AI и автоматизация</CardTitle>
-            <CardDescription>Интеллектуальные функции</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <label className="flex items-center justify-between rounded-lg border p-3">
-              <div>
-                <p className="text-sm font-medium">Автогенерация сводок</p>
-                <p className="text-xs text-muted-foreground">Генерировать AI-сводку для каждой сохранённой статьи</p>
-              </div>
-              <Switch checked={form['bot.autoSummarize'] === 'true'} onCheckedChange={(v) => set('bot.autoSummarize', v ? 'true' : 'false')} />
-            </label>
-            <div className="rounded-lg border border-dashed bg-muted/30 p-3">
-              <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                <ShieldCheck className="size-3.5" /> API-ключи хранятся в защищённом хранилище
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Webhook info */}
+      {/* AI model (Cloud.ru) */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Webhook className="size-4 text-primary" /> Интеграции</CardTitle>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2"><Cpu className="size-4 text-primary" /> AI-модель (Cloud.ru)</CardTitle>
+              <CardDescription>OpenAI-совместимый endpoint для сводок и эмбеддингов</CardDescription>
+            </div>
+            <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ${llmConfigured ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'}`}>
+              {llmConfigured ? <CheckCircle2 className="size-3" /> : <AlertCircle className="size-3" />}
+              {llmConfigured ? 'Подключено' : 'Не настроено'}
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field icon={Globe} label="Base URL" hint="Напр. https://llm.cloud.ru/v1">
+              <Input value={form['llm.baseUrl'] || ''} onChange={(e) => set('llm.baseUrl', e.target.value)} placeholder="https://llm.cloud.ru/v1" />
+            </Field>
+            <Field icon={KeyRound} label="API-ключ" hint={form['llm.apiKeyMasked'] ? `Текущий: ${form['llm.apiKeyMasked']}` : 'Шифруется и хранится в БД'}>
+              <Input type="password" value={form['llm.apiKey'] || ''} onChange={(e) => set('llm.apiKey', e.target.value)} placeholder={form['llm.apiKeyMasked'] || 'Введите API-ключ'} />
+            </Field>
+            <Field icon={Bot} label="Модель (chat)" hint="Для AI-сводок">
+              <Input value={form['llm.model'] || ''} onChange={(e) => set('llm.model', e.target.value)} placeholder="gpt-4o-mini" />
+            </Field>
+            <Field icon={Sparkles} label="Embedding-модель" hint="Для семантического поиска">
+              <Input value={form['llm.embedModel'] || ''} onChange={(e) => set('llm.embedModel', e.target.value)} placeholder="text-embedding-3-small" />
+            </Field>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button variant="outline" size="sm" onClick={testConnection} disabled={testing}>
+              {testing ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />}
+              Проверить подключение
+            </Button>
+            <span className="text-xs text-muted-foreground">Размерность колонки БД: <span className="font-medium">{form['llm.embedDim'] || '1536'}</span></span>
+          </div>
+
+          {testResult && (
+            <div className="space-y-2 rounded-lg border bg-muted/30 p-3 text-sm">
+              <div className="flex flex-wrap items-center gap-4">
+                <span className="flex items-center gap-1.5">
+                  {testResult.chatOk ? <CheckCircle2 className="size-4 text-emerald-600" /> : <XCircle className="size-4 text-rose-500" />}
+                  Chat: {testResult.chatOk ? 'OK' : 'ошибка'}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  {testResult.embedOk ? <CheckCircle2 className="size-4 text-emerald-600" /> : <XCircle className="size-4 text-rose-500" />}
+                  Embeddings: {testResult.embedOk ? 'OK' : 'ошибка'}
+                </span>
+                {testResult.embedOk && (
+                  <span className={`flex items-center gap-1.5 ${testResult.dimMatch ? 'text-emerald-600' : 'text-amber-600'}`}>
+                    {testResult.dimMatch ? <CheckCircle2 className="size-4" /> : <AlertCircle className="size-4" />}
+                    Размерность: {testResult.embedDim} {testResult.dimMatch ? '(совпадает)' : `≠ ${testResult.expectedDim} (несовпадение!)`}
+                  </span>
+                )}
+              </div>
+              {testResult.errors.length > 0 && (
+                <ul className="space-y-0.5 text-xs text-rose-500">
+                  {testResult.errors.map((err, i) => <li key={i}>{err}</li>)}
+                </ul>
+              )}
+              {testResult.embedOk && !testResult.dimMatch && (
+                <p className="text-xs text-amber-600">
+                  Модель отдаёт {testResult.embedDim}-мерные вектора, а колонка БД ожидает {testResult.expectedDim}. Смените embedding-модель на {testResult.expectedDim}-мерную, иначе семантический поиск не будет работать.
+                </p>
+              )}
+            </div>
+          )}
+
+          <label className="flex items-center justify-between rounded-lg border p-3">
+            <div>
+              <p className="text-sm font-medium">Автогенерация сводок</p>
+              <p className="text-xs text-muted-foreground">Генерировать AI-сводку для каждой сохранённой статьи</p>
+            </div>
+            <Switch checked={form['bot.autoSummarize'] === 'true'} onCheckedChange={(v) => set('bot.autoSummarize', v ? 'true' : 'false')} />
+          </label>
+
+          <div className="rounded-lg border border-dashed bg-muted/30 p-3">
+            <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+              <ShieldCheck className="size-3.5" /> API-ключ шифруется (AES-256-GCM) и хранится в БД. В интерфейсе не отображается.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Workspace */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Languages className="size-4 text-violet-500" /> Рабочее пространство</CardTitle>
+          <CardDescription>Язык интерфейса и название</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-4 sm:grid-cols-2">
+          <Field icon={Languages} label="Название workspace">
+            <Input value={form['workspace.name'] || ''} onChange={(e) => set('workspace.name', e.target.value)} />
+          </Field>
+          <Field icon={Globe} label="Язык">
+            <Select value={form['workspace.language']} onValueChange={(v) => set('workspace.language', v)}>
+              <SelectTrigger className="text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ru">Русский</SelectItem>
+                <SelectItem value="en">English</SelectItem>
+                <SelectItem value="kk">Қазақша</SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+        </CardContent>
+      </Card>
+
+      {/* Integrations note */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2"><Bell className="size-4 text-rose-500" /> Интеграции</CardTitle>
           <CardDescription>Подключение внешних сервисов</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border bg-muted/30 p-4">
-            <p className="text-sm font-medium">Telegram Bot API</p>
+          <div className="rounded-lg border bg-muted/30 p-4 text-sm">
+            <p className="font-medium">Telegram</p>
             <p className="mt-0.5 text-xs text-muted-foreground">
-              Введите токен бота от @BotFather. Дайджесты будут отправляться через официальный Telegram Bot API.
-            </p>
-            <div className="mt-2 flex items-center gap-2">
-              <Input type="password" placeholder="123456:ABC-DEF…" className="text-xs" disabled />
-              <Button size="sm" variant="outline" disabled>Подключить</Button>
-            </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              ⚠ В демо-режиме отправка имитируется. Реальный токен не требуется.
+              Telegram подключается в разделе «Telegram» через MTProto user-аккаунт (телефон → код → 2FA). BotFather-токен не требуется.
             </p>
           </div>
         </CardContent>

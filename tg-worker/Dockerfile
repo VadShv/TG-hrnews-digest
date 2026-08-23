@@ -1,4 +1,4 @@
-# HR Pulse — Telegram worker (kurigram MTProto + FastAPI)
+# HR News Digest — Telegram worker (kurigram MTProto + FastAPI)
 FROM python:3.11-slim AS builder
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends gcc git && rm -rf /var/lib/apt/lists/*

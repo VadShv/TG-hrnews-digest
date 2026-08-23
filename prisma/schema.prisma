@@ -1,4 +1,4 @@
-// HR Pulse — SaaS for managing an HR news digest bot
+// HR News Digest — SaaS for managing an HR news digest bot
 // Postgres + pgvector. Vector/FTS/trigram columns managed via raw migrations.
 
 generator client {

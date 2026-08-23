@@ -1,4 +1,4 @@
--- HR Pulse — initial migration (Postgres + pgvector + pg_trgm)
+-- HR News Digest — initial migration (Postgres + pgvector + pg_trgm)
 -- Extensions must exist before the vector column.
 
 CREATE EXTENSION IF NOT EXISTS "vector";

@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   if (!body.chatId) {
     return NextResponse.json({ error: 'chatId обязателен' }, { status: 400 })
   }
-  const message = body.message || '🧪 Тестовое сообщение от HR Pulse Bot'
+  const message = body.message || '🧪 Тестовое сообщение от HR News Digest Bot'
   const job = await enqueueTestMessage(body.chatId, message)
   return NextResponse.json({ ok: true, jobId: job.id, message: 'Тест поставлен в очередь' })
 }

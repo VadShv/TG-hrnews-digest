@@ -36,7 +36,7 @@ export default function LoginPage() {
           <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-amber-500 text-white shadow-lg">
             <Bot className="size-6" />
           </div>
-          <CardTitle className="text-xl brand-gradient">HR Pulse</CardTitle>
+          <CardTitle className="text-xl brand-gradient">HR News Digest</CardTitle>
           <CardDescription>Вход в панель управления</CardDescription>
         </CardHeader>
         <CardContent>
