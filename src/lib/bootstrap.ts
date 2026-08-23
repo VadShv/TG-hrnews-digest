@@ -23,7 +23,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   'llm.baseUrl': '',
   'llm.model': 'gpt-4o-mini',
   'llm.embedModel': 'text-embedding-3-small',
-  'llm.embedDim': '1536',
+  'llm.embedDim': '4096',
 }
 
 // Old brand values → new (only migrated if the user hasn't customized them).

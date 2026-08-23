@@ -15,7 +15,7 @@ export interface LlmConfig {
 }
 
 /// Fixed vector column dimension (from the init migration). Embeddings must match.
-export const COLUMN_EMBED_DIM = 1536
+export const COLUMN_EMBED_DIM = 4096
 
 const ENV_PLACEHOLDER = /^CHANGE_ME/i
 
@@ -54,7 +54,7 @@ export async function getLlmConfig(): Promise<LlmConfig | null> {
   if (!apiKey) apiKey = envOrUndef(process.env.LLM_API_KEY) || ''
   const model = dbMap['llm.model'] || envOrUndef(process.env.LLM_MODEL) || 'gpt-4o-mini'
   const embedModel = dbMap['llm.embedModel'] || envOrUndef(process.env.LLM_EMBED_MODEL) || 'text-embedding-3-small'
-  const embedDim = parseInt(dbMap['llm.embedDim'] || process.env.EMBED_DIM || '1536', 10) || 1536
+  const embedDim = parseInt(dbMap['llm.embedDim'] || process.env.EMBED_DIM || '4096', 10) || 4096
 
   if (!baseURL || !apiKey) return null
   _config = { baseURL, apiKey, model, embedModel, embedDim }

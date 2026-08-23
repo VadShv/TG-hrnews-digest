@@ -192,7 +192,7 @@ export function SettingsView() {
               {testing ? <Loader2 className="size-4 animate-spin" /> : <Zap className="size-4" />}
               Проверить подключение
             </Button>
-            <span className="text-xs text-muted-foreground">Размерность колонки БД: <span className="font-medium">{form['llm.embedDim'] || '1536'}</span></span>
+            <span className="text-xs text-muted-foreground">Размерность колонки БД: <span className="font-medium">{form['llm.embedDim'] || '4096'}</span></span>
           </div>
 
           {testResult && (

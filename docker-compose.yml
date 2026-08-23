@@ -49,7 +49,7 @@ services:
       LLM_API_KEY: ${LLM_API_KEY}
       LLM_MODEL: ${LLM_MODEL:-gpt-4o-mini}
       LLM_EMBED_MODEL: ${LLM_EMBED_MODEL:-text-embedding-3-small}
-      EMBED_DIM: ${EMBED_DIM:-1536}
+      EMBED_DIM: ${EMBED_DIM:-4096}
       RSSHUB_BASE_URL: http://rsshub:1200
       TG_WORKER_URL: http://tg-worker:8001
       APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY}
